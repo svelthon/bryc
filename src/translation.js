@@ -213,7 +213,8 @@ function vlq(value) {
 }
 
 function sourceMap(generated, source, content, lineOffset) {
-    const marker = /\$B\.set_lineno\(frame, (\d+)\)/;
+    // The line, and for a `class` the kind of statement after it, `'ClassDef'`.
+    const marker = /\$B\.set_lineno\(frame, (\d+)[,)]/;
     const segments = [];
     let previous = 0;
     let current = null;

@@ -158,6 +158,19 @@ test('a line before any Python line maps to nothing', () => {
     expect(original).toHaveLength(lines.length);
 });
 
+// A class's statement is marked with its kind, `set_lineno(frame, 1,
+// 'ClassDef')`, and its lines map to it as any other's: they mapped to nothing
+// up to the next statement.
+test("a class's lines map to its line, which Brython marks with the kind of statement", () => {
+    const { module, map } = bryc.compile(host, 'class Box:\n    size = 1\n', options);
+    const lines = module.split('\n');
+    const original = originalLines(map.mappings);
+    const at = lines.findIndex((one) => one.includes("$B.set_lineno(frame, 1, 'ClassDef')"));
+
+    expect(at).toBeGreaterThan(-1);
+    expect([original[at], original[at + 1]]).toEqual([0, 0]);
+});
+
 // **The code Brython generated lives in a module of its own**, which imports
 // its runtime from the host's bridge, under the names the host's runtime gives
 // it, and runs the Python body inside the namespace it is handed: a Python
