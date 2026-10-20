@@ -186,12 +186,12 @@ export const NAME = `[\\p{XID_Start}_][${NAME_CHAR}]*`;
 // A conversion, `!r`, closes the expression as well.
 export const CONVERSION = /![rsa]\s*$/;
 
-// A name as Python reads it: normalized to NFKC when it holds a character past
-// ASCII, as the engine reads every identifier, so `ﬁeld` and `field` are one
-// name. The markup compares names so and never rewrites one it emits: a name a
-// block declares is a JavaScript variable as well, and JavaScript knows it by
-// the spelling it was declared under.
-export const pythonName = (name) => (/^[\x00-\x7f]*$/.test(name) ? name : name.normalize('NFKC'));
+// A name as Python reads it, by the engine's own rule, the one its parser reads
+// every identifier by: normalized to NFKC when it holds a character past
+// ASCII, so `ﬁeld` and `field` are one name. The markup compares names so and
+// never rewrites one it emits: a name a block declares is a JavaScript variable
+// as well, and JavaScript knows it by the spelling it was declared under.
+export const pythonName = (name) => globalThis.__BRYTHON__._PyPegen.new_identifier(null, name);
 
 // Two names as Python compares them (`pythonName`): `ﬁeld` declared and
 // `field` read are one name. Every question of which name an expression reads
@@ -231,18 +231,14 @@ const referenced = (text) => {
     return [...found];
 };
 
-// An expression as Python reads it, by the parser of the Brython the compiler
-// has loaded before any markup is read. A binding's target: `(amount)` is the
-// `Name` `amount`, and `bag["selected"]`, `bag[ "selected" ]` and
-// `bag['selected']` are one `Subscript`. And where an `{#await}` ends. Null for
-// text that does not parse, which the compiler refuses where it is written once
-// it compiles it.
+// An expression as Python reads it, by Brython's parser, which the door loads
+// before any file of Bryc runs. A binding's target: `(amount)` is the `Name`
+// `amount`, and `bag["selected"]`, `bag[ "selected" ]` and `bag['selected']`
+// are one `Subscript`. And where an `{#await}` ends. Null for text that does
+// not parse, which the compiler refuses where it is written once it compiles
+// it.
 export function targetTree(expr) {
     const $B = globalThis.__BRYTHON__;
-
-    if (typeof $B?.Parser !== 'function') {
-        throw new Error("bryc: reading a template expression needs Brython's parser, which `bryntime/compiler` loads");
-    }
 
     try {
         return $B._PyPegen.run_parser(new $B.Parser(expr.trim(), '<target>', 'eval')).body;

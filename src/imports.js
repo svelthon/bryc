@@ -4,10 +4,10 @@
 // the imports the runtime cannot satisfy. The calls that need what the page
 // does not have. Each refused, under the host's name (`host.name`), on its
 // line.
-import { atomic } from './expressions.js';
+import { atomic, pythonName } from './expressions.js';
 import { refuse } from './errors.js';
 import { BODIES, walkScoped, builtinIn, scopeIn, isGlobalScope, blockBinds, moduleBinds } from './scopes.js';
-import { JS_NAME, unbindable, pythonKey, PROTO } from './translation.js';
+import { JS_NAME, unbindable, PROTO } from './translation.js';
 
 // `__js__` keeps a literal reading, where `__all__` is run as Python runs it
 // (`declaredExports`): it is a directive, set by one assignment and changed by
@@ -323,9 +323,9 @@ function jsNameBindings(host, { jsImported, declared, source }, extra = []) {
     // Once each. The two lists overlap whenever a component names the same
     // import in its `<script module>` and in an `importjs`, and the two loops
     // this replaces then bound it twice: the same line, emitted after itself.
-    const names = [...new Set([...jsImported, ...extra])].filter((n) => !declared.includes(pythonKey(n)));
+    const names = [...new Set([...jsImported, ...extra])].filter((n) => !declared.includes(pythonName(n)));
 
-    // Published under the name Python reads (`pythonKey`), each read off the
+    // Published under the name Python reads (`pythonName`), each read off the
     // variable as JavaScript spells it: `ﬁeld` in the `<script module>` is
     // `field` to Python, which raised `NameError` on both spellings. Two
     // variables Python reads as one name are refused, which one wins being
@@ -333,16 +333,16 @@ function jsNameBindings(host, { jsImported, declared, source }, extra = []) {
     const published = new Map();
 
     for (const n of names) {
-        const other = published.get(pythonKey(n));
+        const other = published.get(pythonName(n));
 
         if (other !== undefined) {
             throw new SyntaxError(
                 `${host.name} — \`${other}\` and \`${n}\` are two JavaScript names Python reads as one, ` +
-                    `\`${pythonKey(n)}\` (${source}): Python normalizes a name as Unicode's NFKC does, ` +
+                    `\`${pythonName(n)}\` (${source}): Python normalizes a name as Unicode's NFKC does, ` +
                     `so the template could reach only one of them. Give one of them another name.`
             );
         }
-        published.set(pythonKey(n), n);
+        published.set(pythonName(n), n);
     }
 
     // **Read at every access, because a name is a binding and not a value.**
@@ -362,8 +362,8 @@ function jsNameBindings(host, { jsImported, declared, source }, extra = []) {
     // JavaScript's.
     return names.map((n) =>
         jsImported.includes(n)
-            ? `${bind}(${PROTO}, '${pythonKey(n)}', () => ${jsCall}(${n}), () => ${readOnlyImport}(${JSON.stringify(n)}, ${JSON.stringify(source)}));`
-            : `${bind}(${PROTO}, '${pythonKey(n)}', () => ${jsCall}(${n}));`
+            ? `${bind}(${PROTO}, '${pythonName(n)}', () => ${jsCall}(${n}), () => ${readOnlyImport}(${JSON.stringify(n)}, ${JSON.stringify(source)}));`
+            : `${bind}(${PROTO}, '${pythonName(n)}', () => ${jsCall}(${n}));`
     );
 }
 

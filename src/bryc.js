@@ -99,7 +99,6 @@ export {
     JS_RESERVED,
     COMPILER_PREFIX,
     PY_NAME,
-    pythonKey,
     refuseHostWords,
     refuseReserved
 } from './translation.js';

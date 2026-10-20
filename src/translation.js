@@ -2,6 +2,7 @@
 // code on every run, the module that holds it and the namespace it runs in,
 // the source map, how a name of the module is held, and what a name of the
 // generated module may be.
+import { pythonName } from './expressions.js';
 import { pythonError, refuse } from './errors.js';
 
 // The engine Bryc compiles on, which Bryntime starts, with the parsing chain it
@@ -85,7 +86,7 @@ function compilePython(host, text, { name, source, named = null, lineOffset = 0,
 // binds. What was read off `root` stays on what the author wrote.
 function translation(host, root, names, options) {
     const $B = engine();
-    const shadowing = [...new Set(names.map(pythonKey))].filter(
+    const shadowing = [...new Set(names.map(pythonName))].filter(
         (n) => n in $B.builtins && /^[A-Za-z_]\w*$/.test(n) && !['None', 'True', 'False', '__debug__'].includes(n)
     );
 
@@ -356,12 +357,6 @@ function unbindable(name) {
     return null;
 }
 
-// A name as Python reads it, by the engine's own rule: NFKC past ASCII, as its
-// parser reads every identifier.
-function pythonKey(name) {
-    return engine()._PyPegen.new_identifier(null, name);
-}
-
 // A word the host reserves (`host.reserved.words`) is its own, not a builtin to
 // shadow: refused rather than quietly given to either side. Scoped like the
 // host's injection of it, so a component's word (`component`) is free in a
@@ -443,7 +438,6 @@ export {
     JS_NAME,
     PY_NAME,
     unbindable,
-    pythonKey,
     refuseHostWords,
     refuseReserved
 };
