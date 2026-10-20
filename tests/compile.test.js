@@ -258,19 +258,20 @@ test("an instance signs its containers onto its own list, and a function's acces
 });
 
 // **A component's Python is its script, dedented, with the template's
-// functions after it**: the block an author indents inside the markup is
-// taken back to column zero as Brython takes a `<script type="text/python">`,
-// each function's dot reads a key as well as an attribute, and Bryc says where
-// each function lands, at the markup line and column it stands for.
+// functions after it**, as the host hands them: the block an author indents
+// inside the markup is taken back to column zero as Brython takes a `<script
+// type="text/python">`, each function is joined as written, its dot plain
+// Python's, and Bryc says where each function lands, at the markup line and
+// column it stands for.
 const component = (text, more) => bryc.compile(host, text, { name: 'Probe', source: 'src/Probe.svelte', component: true, ...more });
 
-test('the script dedented, the functions after it, each where its markup stands', () => {
+test('the script dedented, the functions after it as written, each where its markup stands', () => {
     const defs = ['def __expr_0(row):\n    return __text(row.name)', 'def __expr_1():\n    return __text(1)'];
     const { src, ranges, templateLine } = component('    x = 1\n\n    y = 2', { defs, defLines: [12, 14], defColumns: [4, 0] });
 
     expect(src).toBe(
         'x = 1\n\ny = 2\n' +
-            'def __expr_0(row):\n    return __text(__getattr(row, "name"))\n\n' +
+            'def __expr_0(row):\n    return __text(row.name)\n\n' +
             'def __expr_1():\n    return __text(1)\n'
     );
     // Python lines 4 to 5 and 7 to 8, the markup's line 12, column 4, and 14.
@@ -285,4 +286,19 @@ test('a script with no template functions is the script, dedented', () => {
     const { src, ranges, templateLine } = component('    x = 1');
 
     expect({ src, ranges, templateLine }).toEqual({ src: 'x = 1', ranges: [], templateLine: undefined });
+});
+
+// **A host whose template's dot reads a key rewrites its functions with
+// `templateDots`** before it hands them over: each attribute read becomes a
+// call to its `readAttr`, each write a binding makes a call to its
+// `writeAttr`, under the names its runtime gives them, and no line is added.
+// A script's own text is no template's, and the tool is not applied to it.
+test("a host's template dot becomes its runtime's calls, under the names it gives them", () => {
+    const named = (readAttr, writeAttr) => ({ ...host, runtime: { ...host.runtime, readAttr, writeAttr } });
+    const read = 'def __expr_0(row):\n    return __text(row.name)';
+    const write = 'def __expr_set_0(value, row):\n    row.label = value';
+
+    expect(bryc.templateDots(named('__getattr', '__setattr'), read)).toBe('def __expr_0(row):\n    return __text(__getattr(row, "name"))');
+    expect(bryc.templateDots(named('readAttr', 'writeAttr'), read)).toBe('def __expr_0(row):\n    return __text(readAttr(row, "name"))');
+    expect(bryc.templateDots(named('readAttr', 'writeAttr'), write)).toBe('def __expr_set_0(value, row):\n    writeAttr(row, "label", value)');
 });

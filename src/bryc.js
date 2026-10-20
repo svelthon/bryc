@@ -28,7 +28,9 @@
 //            by, keyed by the function's own: `{ withNamespace:
 //            '__withNamespace', pyError: '__pyError', … }` where the
 //            component's own names share the scope, `{ withNamespace:
-//            'withNamespace', … }` where they do not.
+//            'withNamespace', … }` where they do not. `templateDots`, for a
+//            host that asks it, writes a dot as a call to `readAttr` and to
+//            `writeAttr`, under the names given here.
 //   state    how a name of the module becomes one of the framework's states,
 //            four functions of the variable that holds it, `cell`:
 //              cell(name, cell, bump)  what declares it, with the `bump` a
@@ -86,8 +88,9 @@ export {
     handedLate
 } from './expressions.js';
 
-// The functions a template's expressions compile to.
-export { EXPR_PREFIX } from './template.js';
+// The functions a template's expressions compile to, and the tool for a host
+// whose template's dot reads a key as well as an attribute.
+export { EXPR_PREFIX, templateDots } from './template.js';
 
 // A Python error made a refusal on its line.
 export { refuse } from './errors.js';

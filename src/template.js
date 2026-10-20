@@ -1,7 +1,7 @@
 // The Python a template's expressions compile to: one function per expression,
 // which the template's pass appends to the module under a name of its own
-// (`EXPR_PREFIX`), and the rule of the template's text that this rewrites into
-// it, the dot that reads a key as well as an attribute.
+// (`EXPR_PREFIX`), and a tool for a host whose template reads a key with a dot
+// as well as an attribute (`templateDots`).
 import { engine } from './translation.js';
 
 // The hidden functions the template's pass appends, one per expression it
@@ -11,18 +11,23 @@ import { engine } from './translation.js';
 // parameters arrive as functions.
 const EXPR_PREFIX = '__expr_';
 
-// In the markup, and only there, the dot finds a key as well as an attribute:
-// `{pep.title}` reads a dict. The same text in the `<script>` stays plain Python
-// and raises.
+// A host's template may give the dot a meaning of its own, a key found as well
+// as an attribute: `{pep.title}` reading a dict, where the same text in the
+// `<script>` stays plain Python and raises. That is the host's semantics, not
+// Python's, so Bryc applies it to nothing: a host that wants it rewrites its
+// template's functions with this before it hands them to `compile()`.
 //
 // A rule of the template's **text**, so it is applied to the text of the
-// functions the template's pass wrote: every attribute read becomes
-// `__getattr(value, "name")`, and the assignment a `bind:` writes becomes
-// `__setattr(value, "name", new)`. A function of the script that the template
-// calls keeps plain Python, and a lambda written in the template keeps the rule
-// however late it runs. The places come from Brython's own parser, in
-// characters, f-string fields included.
-function templateDots(def) {
+// functions the template's pass wrote: every attribute read becomes a call to
+// the host's `readAttr`, `readAttr(value, "name")`, and the assignment a
+// binding writes a call to its `writeAttr`, `writeAttr(value, "name", new)`,
+// each under the name the host's runtime gives it (`host.runtime`). A function
+// of the script that the template calls keeps plain Python, and a lambda
+// written in the template keeps the rule however late it runs. The places come
+// from Brython's own parser, in characters, f-string fields included, and no
+// line is added, so a function keeps the lines its markup was given.
+function templateDots(host, def) {
+    const { readAttr, writeAttr } = host.runtime;
     const $B = engine();
     let tree;
 
@@ -167,7 +172,7 @@ function templateDots(def) {
             // The target may stand between parentheses, `(row.label) = new`:
             // the call opens before them and they close around the object.
             const closers = def.slice(end(target), begin(node.value)).replace(/[\s=]/g, '');
-            insert(begin(node), '__setattr(', node);
+            insert(begin(node), `${writeAttr}(`, node);
             replace(dot(target), begin(node.value), `${closers}, ${JSON.stringify(target.attr)}, `);
             insert(end(node.value), ')', node.value);
             visit(target.value, shadowed);
@@ -176,7 +181,7 @@ function templateDots(def) {
         }
 
         if (node instanceof $B.ast.Attribute && node.ctx instanceof $B.ast.Load) {
-            insert(begin(node), '__getattr(', node);
+            insert(begin(node), `${readAttr}(`, node);
             replace(dot(node), end(node), `, ${JSON.stringify(node.attr)})`);
         }
 
@@ -243,6 +248,9 @@ function templateDots(def) {
 // one is a mistake rather than a convenience, and a module has no template to
 // collect from.
 //
+// The functions are joined as the host hands them: what its template's text
+// means, a dot that reads a key among it, is the host's to have written.
+//
 // `ranges` says where each template function lands in the Python source, as
 // `[from, to, line, column]`, with the file line and column of the markup it
 // stands for: an error raised inside one, or inside a lambda it made, is
@@ -250,14 +258,13 @@ function templateDots(def) {
 // number. `templateLine` is where the first one starts.
 function componentSource(text, defs, lines = [], columns = []) {
     const body = engine().unindent(text);
-    const rewritten = defs.map(templateDots);
     const ranges = [];
     let templateLine;
     let from = body.split('\n').length + 1;
 
-    if (rewritten.length) templateLine = from;
+    if (defs.length) templateLine = from;
 
-    rewritten.forEach((def, index) => {
+    defs.forEach((def, index) => {
         const to = from + def.split('\n').length - 1;
 
         if (lines[index] !== undefined) ranges.push([from, to, lines[index], columns[index]]);
@@ -265,7 +272,7 @@ function componentSource(text, defs, lines = [], columns = []) {
         from = to + 2;
     });
 
-    return { src: rewritten.length ? `${body}\n${rewritten.join('\n\n')}\n` : body, ranges, templateLine };
+    return { src: defs.length ? `${body}\n${defs.join('\n\n')}\n` : body, ranges, templateLine };
 }
 
 export { EXPR_PREFIX, templateDots, componentSource };
