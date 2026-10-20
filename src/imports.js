@@ -510,7 +510,7 @@ function refuseRelativeImports(host, relative, source, lineOffset) {
     );
 }
 
-// The modules the runtime holds, the ones the engine Bryntime ships registers
+// The modules the runtime holds, the ones the engine Bryve ships registers
 // as it loads. Python's standard library does not ship: anything else an `import`
 // names is one of the project's own files or nothing, and Brython, looking for
 // nothing, raises `JavascriptError` rather than `ImportError`. Held to the

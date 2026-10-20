@@ -230,7 +230,7 @@ function templateDots(def) {
 // `$B.unindent` is Brython's own, the one it already runs on every `<script
 // type="text/python">`, so the two tags behave alike and there is no second
 // copy of the rule to keep in agreement. It is private upstream, so the engine
-// Bryntime ships exposes it in one token. Its rule is `textwrap.dedent`'s with
+// Bryve ships exposes it in one token. Its rule is `textwrap.dedent`'s with
 // a conservative bail (one non-blank line already at column zero and the source
 // comes back untouched), and blank lines are kept, so the line count never
 // moves and the source map, the tracebacks and `$B.set_lineno` are unaffected.

@@ -10,9 +10,9 @@
 // This file is the one door: nothing outside this folder imports another file
 // of it, so each stays Bryc's to split, move or rename.
 //
-// Bryc runs on the engine Bryntime starts and on Bryve's parsing chain, which
-// this door loads, in that order, before any file of Bryc runs: a host loads
-// nothing for it.
+// Bryc runs on Bryve, Brython with its fixes: the engine started, then its
+// parsing chain, which this door loads, in that order, before any file of Bryc
+// runs. A host loads nothing for it, and Bryc needs no runtime of a host's.
 //
 // ## The host
 //
@@ -63,7 +63,7 @@
 //
 // Whatever names a thing the host provides belongs to the host, messages
 // included.
-import 'bryntime';
+import 'bryve';
 import 'bryve/compiler';
 
 // The common half of a compile, in its order (`compile.js`).
