@@ -3,11 +3,11 @@
 Bryc, the Brython compiler for JavaScript frameworks.
 
 ```sh
-npm install bryc
+npm install brycomp
 ```
 
 ```js
-import { compile } from 'bryc';
+import { compile } from 'brycomp';
 
 const { module, map } = compile(host, text, { name, source });
 ```

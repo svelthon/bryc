@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Bryc demo</title>
+        <style>
+            :root {
+                --bg: #f7f7f5;
+                --card: #ffffff;
+                --ink: #1d1d1f;
+                --muted: #6b6b70;
+                --line: #e2e2e0;
+                --accent: #3b5bdb;
+                --bad: #c92a2a;
+                --code: #f1f1ee;
+                --kw: #a626a4;
+                --str: #2b8a3e;
+                --num: #c2410c;
+                --fn: #1c7ed6;
+                --bi: #0c8599;
+            }
+            @media (prefers-color-scheme: dark) {
+                :root {
+                    --bg: #151517;
+                    --card: #1e1e21;
+                    --ink: #ececec;
+                    --muted: #9a9aa2;
+                    --line: #2e2e33;
+                    --accent: #7c9cff;
+                    --bad: #ff6b6b;
+                    --code: #18181b;
+                    --kw: #d291e4;
+                    --str: #8ce99a;
+                    --num: #ffa94d;
+                    --fn: #74c0fc;
+                    --bi: #66d9e8;
+                }
+            }
+            * { box-sizing: border-box; }
+            body {
+                margin: 0;
+                background: var(--bg);
+                color: var(--ink);
+                font: 15px/1.5 system-ui, sans-serif;
+            }
+            main { max-width: 1600px; margin: 0 auto; padding: 24px 16px 48px; }
+            h1 { margin: 0 0 4px; font-size: 26px; }
+            .lead { margin: 0 0 20px; color: var(--muted); }
+            .grid { display: grid; grid-template-columns: 2fr 3fr; gap: 16px; align-items: start; }
+            @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+            section {
+                background: var(--card);
+                border: 1px solid var(--line);
+                border-radius: 10px;
+                padding: 16px;
+                min-width: 0;
+            }
+            h2 { margin: 0 0 4px; font-size: 16px; }
+            .says { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+            .examples { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+            button {
+                font: inherit;
+                font-size: 13px;
+                padding: 4px 10px;
+                border: 1px solid var(--line);
+                border-radius: 999px;
+                background: var(--code);
+                color: var(--ink);
+                cursor: pointer;
+            }
+            button[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
+            textarea, pre {
+                width: 100%;
+                margin: 0;
+                font: 13px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+                background: var(--code);
+                color: var(--ink);
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                padding: 12px;
+            }
+            .editor {
+                display: flex;
+                height: 360px;
+                background: var(--code);
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            #numbers {
+                flex: none;
+                width: auto;
+                overflow: hidden;
+                border: none;
+                border-radius: 0;
+                background: transparent;
+                padding: 12px 8px 12px 12px;
+                text-align: right;
+                color: var(--muted);
+                user-select: none;
+            }
+            .field { position: relative; flex: 1; min-width: 0; }
+            .field pre,
+            .field textarea {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                border: none;
+                border-radius: 0;
+                padding: 12px 12px 12px 8px;
+                white-space: pre;
+                tab-size: 4;
+            }
+            .field pre { overflow: hidden; background: transparent; color: var(--ink); text-align: left; pointer-events: none; }
+            .field textarea {
+                background: transparent;
+                color: transparent;
+                caret-color: var(--ink);
+                resize: none;
+                outline: none;
+                overflow: auto;
+            }
+            .field textarea::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+            .kw { color: var(--kw); }
+            .str { color: var(--str); }
+            .num { color: var(--num); }
+            .com { color: var(--muted); font-style: italic; }
+            .fn { color: var(--fn); }
+            .bi { color: var(--bi); }
+            .eng { color: var(--bi); }
+            pre { overflow: auto; white-space: pre; }
+            #module { height: max(480px, calc(100vh - 260px)); }
+            .gutter { color: var(--muted); user-select: none; }
+            .mapped { color: var(--accent); }
+            dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 12px 0 0; font-size: 14px; }
+            dt { color: var(--muted); }
+            dd { margin: 0; font-family: ui-monospace, monospace; overflow-wrap: anywhere; }
+            .refusal { color: var(--bad); white-space: pre-wrap; }
+            .ok { color: var(--muted); }
+            .adds { margin-top: 16px; overflow-x: auto; }
+            table { width: 100%; border-collapse: collapse; font-size: 14px; }
+            th, td { text-align: left; vertical-align: top; padding: 8px 12px; border-top: 1px solid var(--line); }
+            thead th { border-top: none; color: var(--muted); font-weight: 600; }
+            tbody th { font-weight: 600; white-space: nowrap; }
+            td code { font-size: 13px; }
+            .gain { color: var(--str); }
+            .loss { color: var(--bad); }
+        </style>
+    </head>
+    <body>
+        <main>
+            <h1>Bryc</h1>
+            <p class="lead">The Brython compiler for JavaScript frameworks: Python in, the module a framework runs out, compiled here in your browser.</p>
+
+            <div class="grid">
+                <section>
+                    <h2>Python</h2>
+                    <p class="says">What an author writes. Edit it, or pick an example.</p>
+                    <div class="examples" id="examples"></div>
+                    <div class="editor">
+                        <pre id="numbers" aria-hidden="true"></pre>
+                        <div class="field">
+                            <pre id="highlight" aria-hidden="true"></pre>
+                            <textarea id="source" spellcheck="false" wrap="off" aria-label="Python source"></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>The module</h2>
+                    <p class="says" id="view-says"></p>
+                    <div class="examples" role="tablist">
+                        <button type="button" id="view-bryc" aria-pressed="true">Bryc</button>
+                        <button type="button" id="view-brython" aria-pressed="false">Brython alone</button>
+                    </div>
+                    <pre id="module" aria-label="Generated module"></pre>
+                    <dl>
+                        <dt>namespace</dt>
+                        <dd id="namespace">–</dd>
+                        <dt>lines</dt>
+                        <dd id="lines">–</dd>
+                        <dt>refusal</dt>
+                        <dd id="refusal" class="ok">none</dd>
+                    </dl>
+                </section>
+            </div>
+
+            <section class="adds">
+                <h2>What Bryc adds to Brython</h2>
+                <p class="says">The same Python, compiled by Brython's own <code>py2js</code> and by Bryc, measured here on what you typed.</p>
+                <table>
+                    <thead>
+                        <tr><th></th><th>Brython alone</th><th>Bryc</th></tr>
+                    </thead>
+                    <tbody id="adds"></tbody>
+                </table>
+            </section>
+        </main>
+
+        <!-- Served as it is, with no bundler: Bryc from its source, Bryvend where npm installed it. -->
+        <script type="importmap">
+            {
+                "imports": {
+                    "bryc": "../src/bryc.js",
+                    "bryvend": "../node_modules/bryvend/start/engine.js",
+                    "bryvend/compiler": "../node_modules/bryvend/brython_compiler.js"
+                }
+            }
+        </script>
+        <script type="module" src="./main.js"></script>
+    </body>
+</html>

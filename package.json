@@ -1,5 +1,5 @@
 {
-  "name": "bryc",
+  "name": "brycomp",
   "version": "0.5.0",
   "description": "The Brython compiler for JavaScript frameworks",
   "author": "Florent Gallaire <fgallaire@gmail.com>",
@@ -30,7 +30,7 @@
     "bryvend": "~3.14.3"
   },
   "devDependencies": {
-    "bryvend": "file:../bryve",
+    "bryvend": "~3.14.3",
     "vitest": "^4.1.12"
   }
 }
