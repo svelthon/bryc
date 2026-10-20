@@ -56,11 +56,18 @@
 //            found besides the component's own folder, which a refusal of an
 //            import tells the author to add to: `'path'`. The name alone, not
 //            the folders it lists.
+//   rewrite  optional: the host's own syntax made Python, before the
+//            translation, `rewrite(text, { source, lineOffset, component,
+//            bound })` answering the text, `bound` the names `importjs`
+//            binds. A host with no syntax of its own leaves it out.
 //
 // Whatever names a thing the host provides belongs to the host, messages
 // included.
 import 'bryntime';
 import 'bryntime/compiler';
+
+// The common half of a compile, in its order (`compile.js`).
+export { compile } from './compile.js';
 
 // Python's text and its expressions.
 export {

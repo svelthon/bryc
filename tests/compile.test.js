@@ -189,6 +189,29 @@ test('code that opens no namespace Bryc can hook is refused, under the host name
     expect(() => bryc.moduleNamespace(plain, 'var x = 1', 'src/a.py')).toThrow(/^host: the code generated for src\/a\.py never calls \$B\.namespace\("src\/a_py"\)/);
 });
 
+// **A compile runs the common half in its order, the host's own syntax made
+// Python before the translation** (`host.rewrite`): a host that writes `TWO`
+// for `2` has it rewritten, told which names `importjs` binds, and a host with
+// no syntax of its own has the text compiled as it is.
+test("the host's rewrite runs before the translation, and a host with none leaves the text", () => {
+    const told = [];
+    const rewriting = {
+        ...plain,
+        rewrite: (text, { bound }) => {
+            told.push([...bound]);
+            return text.replace('TWO', '2');
+        }
+    };
+    const options = { name: 'a', source: 'src/a.py', component: true };
+    const compiled = bryc.compile(rewriting, 'importjs { shuffle } from "lodash"\nx = TWO\n', options);
+
+    expect(compiled.src).toBe('\nx = 2\n');
+    expect(told).toEqual([['shuffle']]);
+    expect(compiled.jsImported).toEqual(['shuffle']);
+    expect(compiled.module).toContain(`return withNamespace("src/a_py", ${NS}, () => {`);
+    expect(bryc.compile(plain, 'x = TWO\n', options).src).toBe('x = TWO\n');
+});
+
 // **The namespace a Python body runs in is a view of the accessors it inherits**:
 // made from them through the host's runtime, flagged `$proxy` so that Brython
 // reads a global through the prototype chain, and known to Python by its
