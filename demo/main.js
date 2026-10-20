@@ -1,4 +1,4 @@
-// A page with no framework: the Python typed on the left is compiled by Bryc,
+// A page with no framework: the Python typed on the left is compiled by Brycomp,
 // in the page, for a host written here, and what `compile()` hands back is
 // shown on the right. Served as it is, from the repository's root
 // (`python3 -m http.server`), at /demo/.
@@ -120,7 +120,7 @@ const $ = (id) => document.getElementById(id);
 const escape = (text) => text.replace(/[&<>]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[char]);
 const paint = (parts) => parts.map(({ cls, text }) => (cls ? `<span class="${cls}">${escape(text)}</span>` : escape(text))).join('');
 
-// No highlighting library. The engine Bryc runs on carries CPython's own
+// No highlighting library. The engine Brycomp runs on carries CPython's own
 // tokenizer, so the Python is coloured by Python's own rules and cannot drift
 // from the grammar. The tokens carry lines and columns, so the source is sliced
 // between them and every space survives as written.
@@ -238,7 +238,7 @@ function scroll() {
     $('highlight').scrollLeft = $('source').scrollLeft;
 }
 
-// The same source compiled twice by each, Brython's own `py2js` and Bryc's
+// The same source compiled twice by each, Brython's own `py2js` and Brycomp's
 // `compile()`: what each hands back, or what it raised.
 const $B = globalThis.__BRYTHON__;
 const said = (error) => (error instanceof Error ? error.message : `${$B.class_name(error)}: ${$B.builtins.str.$factory(error)}`);
@@ -295,7 +295,7 @@ function render() {
         .join('\n');
 }
 
-// What Bryc adds, each row measured on the source as typed.
+// What Brycomp adds, each row measured on the source as typed.
 function adds(text, plain, ours) {
     const again = { plain: brython(text), ours: bryc(text) };
     const same = (one, two) => !one.error && !two.error && (one.module ?? one.js) === (two.module ?? two.js);
@@ -322,7 +322,7 @@ function adds(text, plain, ours) {
     ]);
 
     // What the page cannot run, an import of nothing or a module that does not
-    // ship: Brython does not look for it, and Bryc does, at build time.
+    // ship: Brython does not look for it, and Brycomp does, at build time.
     rows.push([
         'What the page could not run',
         plain.error

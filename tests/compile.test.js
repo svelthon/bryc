@@ -4,7 +4,7 @@
 // Python error made a refusal on its line, the source map, the module that
 // holds the code and the namespace it runs in, and a component's Python, its
 // script with the template's functions after it. And how a name of the module
-// is held, which the host writes with Bryc's accessors.
+// is held, which the host writes with Brycomp's accessors.
 import { test, expect } from 'vitest';
 import * as bryc from '../src/bryc.js';
 
@@ -175,7 +175,7 @@ test("a class's lines map to its line, which Brython marks with the kind of stat
 // its runtime from the host's bridge, under the names the host's runtime gives
 // it, and runs the Python body inside the namespace it is handed: a Python
 // exception comes out as the runtime makes it, said for the source. And the
-// namespace the code opens is the one Bryc names for the file, or the module
+// namespace the code opens is the one Brycomp names for the file, or the module
 // Python imports it by.
 //
 // A host whose generated names share no scope with the author's, as a Vue
@@ -245,7 +245,7 @@ test('one a body may replace is a `let`', () => {
 });
 
 // **A name of the module is a cell the host makes one of its states, behind an
-// accessor Bryc writes**: the accessor reads the cell so that a change in place
+// accessor Brycomp writes**: the accessor reads the cell so that a change in place
 // moves its readers, follows the cell itself for the rows of a template's loop,
 // and writes through `track`, unless the write changes nothing.
 test('the cell is the host\'s state, with the bump that moves its readers', () => {
@@ -274,7 +274,7 @@ test("an instance signs its containers onto its own list, and a function's acces
 // functions after it**, as the host hands them: the block an author indents
 // inside the markup is taken back to column zero as Brython takes a `<script
 // type="text/python">`, each function is joined as written, its dot plain
-// Python's, and Bryc says where each function lands, at the markup line and
+// Python's, and Brycomp says where each function lands, at the markup line and
 // column it stands for.
 const component = (text, more) => bryc.compile(host, text, { name: 'Probe', source: 'src/Probe.svelte', component: true, ...more });
 

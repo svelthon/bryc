@@ -1,6 +1,6 @@
-# What Bryc asks of Brython
+# What Brycomp asks of Brython
 
-Bryc compiles Python to JavaScript with Brython's compiler, the parsing chain
+Brycomp compiles Python to JavaScript with Brython's compiler, the parsing chain
 Bryvend ships beside the engine, which its door loads. Almost none of what it
 touches is a public API: it is the shape of Brython's internals. This file is
 the contract, so that a Brython change can be checked against it, and so that
@@ -44,7 +44,7 @@ call is absent, rather than hand a host a module with no reactivity.
 | `$B.SYMBOL_FLAGS` | the flags of a symbol: `USE`, `DEF_BOUND`, and the scope held at `SCOPE_OFFSET` under `SCOPE_MASK`, `GLOBAL_IMPLICIT` and `GLOBAL_EXPLICIT` among them. `moduleBinds` reads the module's bound names off it, and the check of `__all__` where each write of it resolves |
 | `$B.str_dict_get(symbols, name, 0)` | a symbol's flags, `0` when the block does not know the name; a block's symbols are walked with `$B.builtins.dict.$iter_items` |
 | `node[$B.ID]` | the id Brython writes on an AST node as it builds the symbol table, which is the `id` of the block that node opens: how a `def`, a `class`, a lambda or a comprehension finds its block |
-| `$B.id_counter(n)` | sets the counter the code generator numbers functions with and returns its previous value; carried as a commit proposed upstream, since the counter is private there. Bryc draws it from the file's path so one source compiles to one text, and gives it back after |
+| `$B.id_counter(n)` | sets the counter the code generator numbers functions with and returns its previous value; carried as a commit proposed upstream, since the counter is private there. Brycomp draws it from the file's path so one source compiles to one text, and gives it back after |
 | `$B.lambda_magic` | the tag in every generated lambda's name, drawn at random per process; set and given back beside the counter |
 | `$B.url2name[filename]` | the module name Brython's importer gives a file, which the code generator writes as the module's `__name__` and the `__module__` of what it defines; set for a module to its import name while it compiles, and given back after |
 | `$B.stdlib` | Brython's catalogue of the modules it can import: `from browser import timer` imports the submodule `browser.timer` when the catalogue names one, and `help("name")` documents a name it holds no module of |

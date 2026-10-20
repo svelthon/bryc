@@ -232,7 +232,7 @@ const referenced = (text) => {
 };
 
 // An expression as Python reads it, by Brython's parser, which the door loads
-// before any file of Bryc runs. A binding's target: `(amount)` is the `Name`
+// before any file of Brycomp runs. A binding's target: `(amount)` is the `Name`
 // `amount`, and `bag["selected"]`, `bag[ "selected" ]` and `bag['selected']`
 // are one `Subscript`. And where an `{#await}` ends. Null for text that does
 // not parse, which the compiler refuses where it is written once it compiles

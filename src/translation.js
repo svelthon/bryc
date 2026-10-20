@@ -5,9 +5,9 @@
 import { pythonName } from './expressions.js';
 import { pythonError, refuse } from './errors.js';
 
-// The engine Bryc compiles on, Bryvend's, started, with the parsing chain it
+// The engine Brycomp compiles on, Bryvend's, started, with the parsing chain it
 // ships beside it, Brython's parser, its symbol table and its code generator:
-// the door loads both, in that order, before any file of Bryc runs.
+// the door loads both, in that order, before any file of Brycomp runs.
 export const engine = () => globalThis.__BRYTHON__;
 
 // Brython numbers what it generates from a counter that starts at random, so
@@ -138,7 +138,7 @@ function moduleNamespace(host, js, source, named = null) {
     if (!js.includes(namespaceCall(namespace))) {
         throw new Error(
             `${host.name}: the code generated for ${source} never calls ${namespaceCall(namespace)}. ` +
-                `Brython's codegen no longer exposes the module namespace where Bryc hooks it`
+                `Brython's codegen no longer exposes the module namespace where Brycomp hooks it`
         );
     }
 

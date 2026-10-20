@@ -1,4 +1,4 @@
-// Bryc, the Brython compiler for JavaScript frameworks, run at build time.
+// Brycomp, the Brython compiler for JavaScript frameworks, run at build time.
 // Brython translates Python; what a framework needs around that is held here:
 // Python's lexical rule, which names a template expression reads and when, the
 // translation itself, the same code on every run, the module that holds it,
@@ -8,11 +8,11 @@
 // stays with it.
 //
 // This file is the one door: nothing outside this folder imports another file
-// of it, so each stays Bryc's to split, move or rename.
+// of it, so each stays Brycomp's to split, move or rename.
 //
-// Bryc runs on Bryvend, Brython with its fixes: the engine started, then its
-// parsing chain, which this door loads, in that order, before any file of Bryc
-// runs. A host loads nothing for it, and Bryc needs no runtime of a host's.
+// Brycomp runs on Bryvend, Brython with its fixes: the engine started, then its
+// parsing chain, which this door loads, in that order, before any file of Brycomp
+// runs. A host loads nothing for it, and Brycomp needs no runtime of a host's.
 //
 // ## The host
 //

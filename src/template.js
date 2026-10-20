@@ -5,7 +5,7 @@
 import { engine } from './translation.js';
 
 // The hidden functions the template's pass appends, one per expression it
-// compiled. The pass names them so, and Bryc reads them by it; the two have to
+// compiled. The pass names them so, and Brycomp reads them by it; the two have to
 // agree. After the prefix, the pass may say how the value is read (`set_` for
 // the write half of a binding), and a `_late` at the end says the function's
 // parameters arrive as functions.
@@ -14,7 +14,7 @@ const EXPR_PREFIX = '__expr_';
 // A host's template may give the dot a meaning of its own, a key found as well
 // as an attribute: `{pep.title}` reading a dict, where the same text in the
 // `<script>` stays plain Python and raises. That is the host's semantics, not
-// Python's, so Bryc applies it to nothing: a host that wants it rewrites its
+// Python's, so Brycomp applies it to nothing: a host that wants it rewrites its
 // template's functions with this before it hands them to `compile()`.
 //
 // A rule of the template's **text**, so it is applied to the text of the

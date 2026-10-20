@@ -1,6 +1,6 @@
 // @vitest-environment node
 //
-// **Bryc holds nothing of the framework it serves**: its files reach one
+// **Brycomp holds nothing of the framework it serves**: its files reach one
 // another and Bryvend, nothing else, Bryntime included; its code names neither
 // a framework nor a rune nor a bridge; and what it says of itself names no
 // tool built on it. Its tests reach it by its door, `src/bryc.js`, the one
@@ -32,7 +32,7 @@ const IMPORTED = /(?:^\s*(?:import|export)\b[^'"]*?\bfrom\s+|^\s*\}\s*from\s+|^\
 
 const imports = (file) => code(file).flatMap(([where, line]) => [...line.matchAll(IMPORTED)].map(([, to]) => [where, to]));
 
-test('Bryc reaches no file outside its folder', () => {
+test('Brycomp reaches no file outside its folder', () => {
     const reached = files(SRC).flatMap((file) =>
         imports(file)
             .filter(([, to]) => to.startsWith('.') && (!to.startsWith('./') || to.includes('/../')))
@@ -43,18 +43,18 @@ test('Bryc reaches no file outside its folder', () => {
 });
 
 // Of the packages, Bryvend alone, the engine started and then its parsing chain:
-// Bryc runs on Brython, never on a host's runtime, Bryntime included.
-test('Bryc imports no package but Bryvend, Bryntime none', () => {
+// Brycomp runs on Brython, never on a host's runtime, Bryntime included.
+test('Brycomp imports no package but Bryvend, Bryntime none', () => {
     const packages = files(SRC).flatMap((file) => imports(file).filter(([, to]) => !to.startsWith('.')));
 
     expect(packages.filter(([, to]) => /^bryntime\b/.test(to))).toEqual([]);
     expect(packages.map(([, to]) => to)).toEqual(['bryvend', 'bryvend/compiler']);
 });
 
-// The tests reach Bryc by its door and by nothing else: no fixture, no other
+// The tests reach Brycomp by its door and by nothing else: no fixture, no other
 // package, a host of their own written in the test. `vitest` is what runs them,
 // and this file, which reads the others, takes Node's own modules to do it.
-test("Bryc's tests import its door and nothing else", () => {
+test("Brycomp's tests import its door and nothing else", () => {
     const tests = files('tests');
     const imported = tests.flatMap((file) =>
         imports(file)
@@ -70,8 +70,8 @@ test("Bryc's tests import its door and nothing else", () => {
 
 // A dependency names none of its dependents, in its code or in what it says of
 // itself: a comment may take a framework for its example, never a tool built on
-// Bryc.
-test('Bryc names no tool built on it, comments included', () => {
+// Brycomp.
+test('Brycomp names no tool built on it, comments included', () => {
     const named = files(SRC).flatMap((file) =>
         lines(file)
             .filter(([, line]) => /svelthon|vuython/i.test(line))
@@ -81,11 +81,11 @@ test('Bryc names no tool built on it, comments included', () => {
     expect(named).toEqual([]);
 });
 
-// **`BRYTHON.md` names every member of the engine Bryc reaches for**: almost
+// **`BRYTHON.md` names every member of the engine Brycomp reaches for**: almost
 // none is public API, so the file is the contract a Brython release is checked
 // against, and a contract that misses one is trusted all the same. Read off the
 // files, comments included, so a new member cannot arrive unnoticed.
-describe('BRYTHON.md names every member Bryc reaches for', () => {
+describe('BRYTHON.md names every member Brycomp reaches for', () => {
     const contract = readFileSync('BRYTHON.md', 'utf8');
     const used = new Set(
         files(SRC).flatMap((file) =>
@@ -93,7 +93,7 @@ describe('BRYTHON.md names every member Bryc reaches for', () => {
         )
     );
 
-    // Measured when Bryc left its first host: 25. A pattern that stopped
+    // Measured when Brycomp left its first host: 25. A pattern that stopped
     // matching would otherwise pass by finding nothing.
     test('there are members to check at all', () => {
         expect(used.size).toBeGreaterThanOrEqual(25);
@@ -104,7 +104,7 @@ describe('BRYTHON.md names every member Bryc reaches for', () => {
     });
 });
 
-test('the code of Bryc names no framework, no rune and no bridge', () => {
+test('the code of Brycomp names no framework, no rune and no bridge', () => {
     const named = files(SRC).flatMap((file) =>
         code(file)
             .filter(([, line]) => /svelte|svelthon|__pybridge|\$(?:state|derived|effect|props|bindable|inspect|host)\b/i.test(line))
