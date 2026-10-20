@@ -1,7 +1,7 @@
 {
   "name": "bryc",
-  "version": "0.1.0",
-  "description": "The glue between Brython and a JavaScript framework, run at build time",
+  "version": "0.5.0",
+  "description": "The Brython compiler for JavaScript frameworks",
   "author": "Florent Gallaire <fgallaire@gmail.com>",
   "license": "BSD-3-Clause",
   "repository": {
@@ -27,10 +27,10 @@
     "test": "vitest run"
   },
   "peerDependencies": {
-    "bryve": "^0.1.0"
+    "bryvend": "~3.14.3"
   },
   "devDependencies": {
-    "bryve": "file:../bryve",
+    "bryvend": "file:../bryve",
     "vitest": "^4.1.12"
   }
 }

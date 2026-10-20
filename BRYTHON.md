@@ -1,12 +1,12 @@
 # What Bryc asks of Brython
 
 Bryc compiles Python to JavaScript with Brython's compiler, the parsing chain
-Bryve ships beside the engine, which its door loads. Almost none of what it
+Bryvend ships beside the engine, which its door loads. Almost none of what it
 touches is a public API: it is the shape of Brython's internals. This file is
 the contract, so that a Brython change can be checked against it, and so that
 whoever reads `src/` knows which assumptions are load-bearing.
 
-Verified against the engine Bryve ships, `$B.version_info == [3, 14, 0]`.
+Verified against the engine Bryvend ships, `$B.version_info == [3, 14, 0]`.
 
 ## The single point everything rests on
 

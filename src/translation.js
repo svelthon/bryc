@@ -5,7 +5,7 @@
 import { pythonName } from './expressions.js';
 import { pythonError, refuse } from './errors.js';
 
-// The engine Bryc compiles on, Bryve's, started, with the parsing chain it
+// The engine Bryc compiles on, Bryvend's, started, with the parsing chain it
 // ships beside it, Brython's parser, its symbol table and its code generator:
 // the door loads both, in that order, before any file of Bryc runs.
 export const engine = () => globalThis.__BRYTHON__;
@@ -116,7 +116,7 @@ const namespaceCall = (name) => `$B.namespace(${JSON.stringify(name)})`;
 // `$B.url2name` maps the file to, with '-' made '_', or else the filename with
 // '.' made '_'. It ends up as a *string*, the argument to $B.namespace and the
 // frame name, so a '/' is harmless there. The identifier built beside it is a
-// different matter, and the engine Bryve ships is patched so that one stays
+// different matter, and the engine Bryvend ships is patched so that one stays
 // valid.
 const namespaceFor = (filename, named = null) =>
     named === null ? filename.replace(/\./g, '_') : named.replace(/-/g, '_');
@@ -128,7 +128,7 @@ const namespaceFor = (filename, named = null) =>
 // `$B.url2name` gives it: `module` and `locals_id` are ignored by
 // js_from_root, so the name to hook is not the module's. Upstream maps only
 // '.' to '_', so a real path emitted `locals_src/Counter_svelte`, which is not
-// valid JavaScript; the engine Bryve ships is patched to neutralise every
+// valid JavaScript; the engine Bryvend ships is patched to neutralise every
 // character that cannot appear in an identifier. That is what lets the real
 // path be passed, so Python's __file__ names the actual file, which is what a
 // traceback shows.

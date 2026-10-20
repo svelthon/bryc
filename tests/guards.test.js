@@ -1,7 +1,7 @@
 // @vitest-environment node
 //
 // **Bryc holds nothing of the framework it serves**: its files reach one
-// another and Bryve, nothing else, Bryntime included; its code names neither
+// another and Bryvend, nothing else, Bryntime included; its code names neither
 // a framework nor a rune nor a bridge; and what it says of itself names no
 // tool built on it. Its tests reach it by its door, `src/bryc.js`, the one
 // module its package exports.
@@ -42,13 +42,13 @@ test('Bryc reaches no file outside its folder', () => {
     expect(reached).toEqual([]);
 });
 
-// Of the packages, Bryve alone, the engine started and then its parsing chain:
+// Of the packages, Bryvend alone, the engine started and then its parsing chain:
 // Bryc runs on Brython, never on a host's runtime, Bryntime included.
-test('Bryc imports no package but Bryve, Bryntime none', () => {
+test('Bryc imports no package but Bryvend, Bryntime none', () => {
     const packages = files(SRC).flatMap((file) => imports(file).filter(([, to]) => !to.startsWith('.')));
 
     expect(packages.filter(([, to]) => /^bryntime\b/.test(to))).toEqual([]);
-    expect(packages.map(([, to]) => to)).toEqual(['bryve', 'bryve/compiler']);
+    expect(packages.map(([, to]) => to)).toEqual(['bryvend', 'bryvend/compiler']);
 });
 
 // The tests reach Bryc by its door and by nothing else: no fixture, no other
