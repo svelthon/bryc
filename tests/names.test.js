@@ -4,7 +4,7 @@
 // JavaScript reserves, a name a JavaScript import brings, a word the host
 // reserves, and a module that does not ship.
 import { test, expect } from 'vitest';
-import * as bryc from '../../src/lib/bryc/bryc.js';
+import * as bryc from '../src/bryc.js';
 
 const host = {
     name: 'host',

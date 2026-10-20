@@ -4,7 +4,7 @@
 // cannot export, each name exported live, and the body run when the module is
 // imported.
 import { test, expect } from 'vitest';
-import * as bryc from '../../src/lib/bryc/bryc.js';
+import * as bryc from '../src/bryc.js';
 
 const host = {
     name: 'host',

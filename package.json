@@ -1,0 +1,36 @@
+{
+  "name": "bryc",
+  "version": "0.1.0",
+  "description": "The glue between Brython and a JavaScript framework, run at build time",
+  "author": "Florent Gallaire <fgallaire@gmail.com>",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/svelthon/bryc.git"
+  },
+  "keywords": [
+    "python",
+    "brython",
+    "compiler"
+  ],
+  "type": "module",
+  "main": "./src/bryc.js",
+  "exports": {
+    ".": "./src/bryc.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "BRYTHON.md",
+    "src"
+  ],
+  "scripts": {
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "bryve": "^0.1.0"
+  },
+  "devDependencies": {
+    "bryve": "file:../bryve",
+    "vitest": "^4.1.12"
+  }
+}
