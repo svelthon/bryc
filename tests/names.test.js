@@ -16,7 +16,8 @@ const host = {
         ],
         said: 'Its helpers may still be shadowed.'
     },
-    instead: { json: '`load(text)` reads JSON' }
+    instead: { json: '`load(text)` reads JSON' },
+    pathOption: 'dirs'
 };
 const source = 'src/a.py';
 const P = bryc.PROTO;
@@ -106,8 +107,10 @@ test("a word the host does not reserve is the author's", () => {
 });
 
 // **A module that does not ship is refused on the line that imports it**,
-// under the host's name, with what the host says stands in for it. A module
-// the runtime holds, or a file of the project, is imported as written.
+// under the host's name, with what the host says stands in for it, and a
+// directory, which is no package, with the option the host also finds modules
+// on. A module the runtime holds, or a file of the project, is imported as
+// written.
 const missing = (module, resolves = () => undefined) => () =>
     bryc.refuseMissingModules(host, new Map([[module, 2]]), resolves, source, 10);
 
@@ -116,6 +119,7 @@ test('a module that does not ship is refused on its line, with what the host say
         /^host — `json` is not a module a component can import: Python's standard library does not ship, .*; `load\(text\)` reads JSON \(src\/a\.py:12\)$/
     );
     expect(missing('csv')).toThrow(/the project's own `\.py` files do \(src\/a\.py:12\)$/);
+    expect(missing('shop.cart', () => 'package')).toThrow(/on `dirs`, not through a package; .* add `shop` to `dirs` and import/);
     expect(missing('browser')).not.toThrow();
     expect(missing('cart', () => 'file')).not.toThrow();
 });

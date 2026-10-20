@@ -51,6 +51,11 @@
 //   instead  what stands in for a module of Python's standard library, which
 //            does not ship, keyed by the module and said after the refusal of
 //            its import: `{ json: '`from_json(text)` reads JSON …', … }`.
+//   pathOption
+//            the name of the host's option that lists where a module is
+//            found besides the component's own folder, which a refusal of an
+//            import tells the author to add to: `'path'`. The name alone, not
+//            the folders it lists.
 //
 // Whatever names a thing the host provides belongs to the host, messages
 // included.

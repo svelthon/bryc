@@ -503,7 +503,7 @@ function refuseRelativeImports(host, relative, source, lineOffset) {
 
     throw refuse(
         `${host.name} — a relative import has no package to be relative to: a module ` +
-            `beside the component, or on \`path\`, is imported by its own name, ` +
+            `beside the component, or on \`${host.pathOption}\`, is imported by its own name, ` +
             `\`${absolute}\` (${source}:${line})`,
         source,
         line
@@ -541,13 +541,14 @@ function refuseMissingModules(host, importedAt, resolves, source, lineOffset) {
         const instead = host.instead[module];
 
         // A module resolves by its file name alone, beside the component or on
-        // `path`: a directory is not a package.
+        // the host's search path (`host.pathOption`): a directory is not a
+        // package.
         const reason =
             found === 'package'
                 ? `\`${first}\` is a directory, and a module is found by its file ` +
-                  `name alone, beside the component or on \`path\`, not through a ` +
+                  `name alone, beside the component or on \`${host.pathOption}\`, not through a ` +
                   `package; put the module beside the component, or add \`${first}\` ` +
-                  `to \`path\` and import the module by its own name`
+                  `to \`${host.pathOption}\` and import the module by its own name`
                 : `Python's standard library does not ship, only \`browser\`, ` +
                   `\`javascript\` and the project's own \`.py\` files do` +
                   (instead ? `; ${instead}` : '');
