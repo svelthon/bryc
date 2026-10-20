@@ -362,14 +362,15 @@ function pythonKey(name) {
     return engine()._PyPegen.new_identifier(null, name);
 }
 
-// A word the host reserves (`host.reserved`) is its own, not a builtin to
+// A word the host reserves (`host.reserved.words`) is its own, not a builtin to
 // shadow: refused rather than quietly given to either side. Scoped like the
 // host's injection of it, so a component's word (`component`) is free in a
 // plain `.py`. `lines` says where each name was bound, so the refusal names
 // the line the word was taken on; a name with none is said with the file
-// alone.
+// alone. What the host provides that may still be shadowed is the host's to
+// say (`host.reserved.said`).
 function refuseHostWords(host, declared, component, source, lines, lineOffset = 0) {
-    const taken = host.reserved.find((one) => (component || !one.component) && declared.includes(one.name));
+    const taken = host.reserved.words.find((one) => (component || !one.component) && declared.includes(one.name));
 
     if (!taken) return;
 
@@ -378,8 +379,7 @@ function refuseHostWords(host, declared, component, source, lines, lineOffset = 
 
     throw refuse(
         `${host.name} — \`${taken.name}\` is one of ${host.name[0].toUpperCase()}${host.name.slice(1)}'s own words and cannot be ` +
-            `redefined (${at}). The helpers, \`date\`, \`slugify\`, \`tojson\` and`  +
-            ` the rest, may still be shadowed; the decorators may not.`,
+            `redefined (${at}). ${host.reserved.said}`,
         source,
         line === undefined ? undefined : line + lineOffset
     );

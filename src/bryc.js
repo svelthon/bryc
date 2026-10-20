@@ -41,10 +41,19 @@
 //                                      moves the reader: `(__rev_x, x)`,
 //                                      `x.value`;
 //              write(cell, value)      the assignment: `x = v`, `x.value = v`.
-//   reserved the framework's own words, which an author may not redefine,
-//            each `{ name, component }`, `component` true for a word reserved
-//            in a component alone: `derived`, `effect`, `export`, … as a host
-//            built on Svelte and one built on Vue both lock them.
+//   reserved the framework's own words, which an author may not redefine:
+//              words  each `{ name, component }`, `component` true for a word
+//                     reserved in a component alone: `derived`, `effect`,
+//                     `export`, … as a host built on Svelte and one built on
+//                     Vue both lock them;
+//              said   the sentence the refusal ends on, which names what the
+//                     host provides that an author may still shadow.
+//   instead  what stands in for a module of Python's standard library, which
+//            does not ship, keyed by the module and said after the refusal of
+//            its import: `{ json: '`from_json(text)` reads JSON …', … }`.
+//
+// Whatever names a thing the host provides belongs to the host, messages
+// included.
 import 'bryntime';
 import 'bryntime/compiler';
 

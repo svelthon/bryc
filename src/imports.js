@@ -527,27 +527,18 @@ const PROVIDED_MODULES = new Set([
     '_suggestions'
 ]);
 
-// What stands in for the standard modules an author reaches for first: a
-// builtin, the helpers the runtime injects, and `js`.
-const MODULE_INSTEAD = {
-    json: '`from_json(text)` reads JSON and `tojson(value)` writes it',
-    math: '`abs`, `round`, `min`, `max` and `pow` are builtins, and `js.Math` holds the rest',
-    random: '`js.Math.random()` draws a number',
-    datetime: '`date` and `fromnow` show a date, and `js.Date` reads the clock',
-    time: '`js.Date.now()` reads the clock'
-};
-
 // An `import` of a module that is neither the runtime's nor a file of the
 // project, refused on its line: in the browser it would fail at mount.
 // `resolves` answers `'file'`, `'package'` when the name's first segment is a
-// directory of the project, or nothing.
+// directory of the project, or nothing. What stands in for the module is the
+// host's to say (`host.instead`), since it names what the host provides.
 function refuseMissingModules(host, importedAt, resolves, source, lineOffset) {
     for (const [module, line] of importedAt) {
         const found = PROVIDED_MODULES.has(module) ? 'file' : resolves(module);
         if (found === 'file') continue;
 
         const [first] = module.split('.');
-        const instead = MODULE_INSTEAD[module];
+        const instead = host.instead[module];
 
         // A module resolves by its file name alone, beside the component or on
         // `path`: a directory is not a package.

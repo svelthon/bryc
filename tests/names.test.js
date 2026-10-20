@@ -1,17 +1,22 @@
 // @vitest-environment node
 //
-// What a name of the module may be: a word JavaScript reserves, a name a
-// JavaScript import brings, and a word the host reserves.
+// What a name of the module may be, and what a source may import: a word
+// JavaScript reserves, a name a JavaScript import brings, a word the host
+// reserves, and a module that does not ship.
 import { test, expect } from 'vitest';
 import * as bryc from '../../src/lib/bryc/bryc.js';
 
 const host = {
     name: 'host',
     runtime: { bind: 'bind', jsCall: 'jsCall', readOnlyImport: 'readOnly' },
-    reserved: [
-        { name: 'derived', component: false },
-        { name: 'export', component: true }
-    ]
+    reserved: {
+        words: [
+            { name: 'derived', component: false },
+            { name: 'export', component: true }
+        ],
+        said: 'Its helpers may still be shadowed.'
+    },
+    instead: { json: '`load(text)` reads JSON' }
 };
 const source = 'src/a.py';
 const P = bryc.PROTO;
@@ -69,9 +74,9 @@ test('two names Python reads as one are refused', () => {
 });
 
 // **A word the host reserves is refused where the author takes it**, under the
-// host's name, on the line the name was bound: a component's word only in a
-// component, and any other everywhere. A word the host does not reserve is the
-// author's.
+// host's name, on the line the name was bound, and ends on what the host says:
+// a component's word only in a component, and any other everywhere. A word the
+// host does not reserve is the author's.
 const lines = new Map([['derived', 3]]);
 
 const refusal = (declared, component) => {
@@ -84,10 +89,10 @@ const refusal = (declared, component) => {
     return null;
 };
 
-test('a reserved word is refused on its line, under the host name', () => {
+test('a reserved word is refused on its line, under the host name, ending on what the host says', () => {
     const error = refusal(['total', 'derived'], false);
 
-    expect(error.message).toMatch(/^host — `derived` is one of Host's own words and cannot be redefined \(src\/a\.py:13\)\./);
+    expect(error.message).toBe("host — `derived` is one of Host's own words and cannot be redefined (src/a.py:13). Its helpers may still be shadowed.");
     expect(error.start).toEqual({ line: 13, column: 0 });
 });
 
@@ -98,4 +103,19 @@ test("a component's word is free in a module, and refused in a component, said w
 
 test("a word the host does not reserve is the author's", () => {
     expect(refusal(['effect', 'total'], true)).toBe(null);
+});
+
+// **A module that does not ship is refused on the line that imports it**,
+// under the host's name, with what the host says stands in for it. A module
+// the runtime holds, or a file of the project, is imported as written.
+const missing = (module, resolves = () => undefined) => () =>
+    bryc.refuseMissingModules(host, new Map([[module, 2]]), resolves, source, 10);
+
+test('a module that does not ship is refused on its line, with what the host says stands in for it', () => {
+    expect(missing('json')).toThrow(
+        /^host — `json` is not a module a component can import: Python's standard library does not ship, .*; `load\(text\)` reads JSON \(src\/a\.py:12\)$/
+    );
+    expect(missing('csv')).toThrow(/the project's own `\.py` files do \(src\/a\.py:12\)$/);
+    expect(missing('browser')).not.toThrow();
+    expect(missing('cart', () => 'file')).not.toThrow();
 });
