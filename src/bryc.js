@@ -87,21 +87,17 @@ export {
 } from './expressions.js';
 
 // The functions a template's expressions compile to.
-export { EXPR_PREFIX, templateDots, componentSource } from './template.js';
+export { EXPR_PREFIX } from './template.js';
 
 // A Python error made a refusal on its line.
 export { refuse } from './errors.js';
 
-// The translation, the module that holds it, the source map, how a name of the
-// module is held, and what a name of the generated module may be.
+// The namespace the code runs in and the names it imports its runtime by, how
+// a name of the module is held, and what a name of the generated module may
+// be.
 export {
-    sourceMap,
-    compilePython,
-    translation,
     NS,
-    moduleNamespace,
     runtimeAliases,
-    moduleCode,
     PROTO,
     namespaceObject,
     NEXT_VALUE,
@@ -124,24 +120,10 @@ export {
     declaredExports,
     exportChecks,
     unboundRefusals,
-    exportCell,
     moduleExports,
     liveExportLines,
     moduleLoad
 } from './exports.js';
 
-// What a source imports, and what the page does not have.
-export {
-    continuedLines,
-    declaredJsImports,
-    takeImportJs,
-    jsImportLine,
-    jsImportsOf,
-    jsNameBindings,
-    refuseBoundImports,
-    moduleImports,
-    refuseRelativeImports,
-    refuseMissingModules,
-    refuseTypeParameters,
-    refuseLibraryCalls
-} from './imports.js';
+// The JavaScript a source imports, and the names JavaScript gives the module.
+export { continuedLines, declaredJsImports, takeImportJs, jsImportLine, jsNameBindings } from './imports.js';

@@ -1,9 +1,10 @@
 // @vitest-environment node
 //
-// What a compile hands back: Brython's translation of the source, a Python
-// error made a refusal on its line, the source map, the module that holds the
-// code and the namespace it runs in, how a name of the module is held, and a
-// component's Python, its script with the template's functions after it.
+// What a compile hands back (`compile`): Brython's translation of the source, a
+// Python error made a refusal on its line, the source map, the module that
+// holds the code and the namespace it runs in, and a component's Python, its
+// script with the template's functions after it. And how a name of the module
+// is held, which the host writes with Bryc's accessors.
 import { test, expect } from 'vitest';
 import * as bryc from '../../src/lib/bryc/bryc.js';
 
@@ -34,21 +35,17 @@ const next = bryc.NEXT_VALUE;
 // is the import, as `from m import max` is in Python, where Brython would take
 // a name nothing in the module binds for the builtin. A name that is no
 // builtin, and a source with none, compile as written.
-const options = { name: 'probe', source: 'src/probe.py', src: 'x = max(1, 2)\n' };
-const root = () => bryc.compilePython(host, options.src, options);
+const options = { name: 'probe', source: 'src/probe.py' };
+const js = (more) => bryc.compile(host, 'x = max(1, 2)\n', { ...options, ...more }).js;
 
 test("a JavaScript name spelled like a builtin is read off the module's namespace", () => {
-    const js = bryc.translation(host, root(), ['max'], options);
-
-    expect(js).toContain("$B.resolve_global('max'");
-    expect(js).not.toContain('_b_.max');
+    expect(js({ jsNames: ['max'] })).toContain("$B.resolve_global('max'");
+    expect(js({ jsNames: ['max'] })).not.toContain('_b_.max');
 });
 
 test('a name that is no builtin leaves the code as Brython wrote it', () => {
-    const written = root().to_js();
-
-    expect(bryc.translation(host, root(), ['shuffle'], options)).toBe(written);
-    expect(written).toContain('_b_.max');
+    expect(js({ jsNames: ['shuffle'] })).toBe(js());
+    expect(js()).toContain('_b_.max');
 });
 
 // **A Python error at compile time is a refusal on the line of the file that
@@ -57,9 +54,9 @@ test('a name that is no builtin leaves the code as Brython wrote it', () => {
 // an editor reads it as well as in the sentence. In a template's function it is
 // the markup's line and column, with the expression quoted and what Python
 // writes instead of the JavaScript in it.
-const refusal = (text, options) => {
+const refusal = (text, more) => {
     try {
-        bryc.compilePython(host, text, { name: 'probe', source: 'src/probe.py', ...options });
+        bryc.compile(host, text, { ...options, ...more });
     } catch (error) {
         return error;
     }
@@ -77,19 +74,22 @@ test('a syntax error is refused at its line, moved by what stands before the Pyt
 });
 
 test("an error in a template's function is refused at the markup, the expression quoted", () => {
-    // The function stands on Python lines 3 to 4, and its expression on line 7,
-    // column 5, of the markup.
-    const text = 'x = 1\n\ndef __expr_0():\n    return __text(a ? b : c)\n';
-    const error = refusal(text, { ranges: [[3, 4, 7, 4]] });
+    // The function stands on Python lines 3 to 4, after the script's line and
+    // the blank one the join leaves, and its expression on line 7, column 5, of
+    // the markup.
+    const error = refusal('x = 1\n', {
+        component: true,
+        defs: ['def __expr_0():\n    return __text(a ? b : c)'],
+        defLines: [7],
+        defColumns: [4]
+    });
 
     expect(error.message).toMatch(/^host — SyntaxError: .* \(src\/probe\.py:7:5\)\n {2}in the template expression `a \? b : c`, which is Python: `a \? b : c` is `b if a else c`\.$/);
     expect(error.start).toEqual({ line: 7, column: 4 });
 });
 
 test('a source that compiles is Brython\'s translation of it', () => {
-    const root = bryc.compilePython(host, 'total = 1 + 2\n', { name: 'probe', source: 'src/probe.py' });
-
-    expect(root.to_js()).toContain('$B.set_lineno(frame, 1)');
+    expect(bryc.compile(host, 'total = 1 + 2\n', options).js).toContain('$B.set_lineno(frame, 1)');
 });
 
 // **Each line of the generated code maps to the Python line it came from**,
@@ -129,23 +129,33 @@ const originalLines = (mappings) => {
     });
 };
 
+// A module of two statements, Python's lines 1 and 4, ten lines into its file.
+const mapped = () => {
+    const { module, map } = bryc.compile(host, 'x = 1\n\n\ny = 2\n', {
+        ...options,
+        source: 'src/Card.py',
+        lineOffset: 10,
+        sourceContent: 'the source'
+    });
+    const lines = module.split('\n');
+
+    return { map, lines, original: originalLines(map.mappings), at: (n) => lines.findIndex((one) => one.includes(`$B.set_lineno(frame, ${n})`)) };
+};
+
 test('a generated line maps to the Python line it came from, moved by what stands before the Python', () => {
-    const generated = [
-        'var $B = __BRYTHON__',
-        '$B.set_lineno(frame, 1)',
-        'x = 1',
-        '$B.set_lineno(frame, 4)',
-        'y = 2'
-    ].join('\n');
-    const map = bryc.sourceMap(generated, 'src/Card.py', 'the source', 10);
+    const { map, original, at } = mapped();
 
     expect(map).toMatchObject({ version: 3, sources: ['src/Card.py'], sourcesContent: ['the source'], names: [] });
-    // Zero-based, as a map counts: Python's line 1 is the file's line 11.
-    expect(originalLines(map.mappings)).toEqual([null, 10, 10, 13, 13]);
+    // Zero-based, as a map counts: Python's line 1 is the file's line 11, and
+    // the line after the call is the same line.
+    expect([original[at(1)], original[at(1) + 1], original[at(4)], original[at(4) + 1]]).toEqual([10, 10, 13, 13]);
 });
 
 test('a line before any Python line maps to nothing', () => {
-    expect(originalLines(bryc.sourceMap('a\nb', 'm.py', '', 0).mappings)).toEqual([null, null]);
+    const { lines, original, at } = mapped();
+
+    expect(original.slice(0, at(1))).toEqual(Array(at(1)).fill(null));
+    expect(original).toHaveLength(lines.length);
 });
 
 // **The code Brython generated lives in a module of its own**, which imports
@@ -160,33 +170,26 @@ test('a line before any Python line maps to nothing', () => {
 const plain = { name: 'host', bridge: 'host/bridge', runtime: { withNamespace: 'withNamespace', pyError: 'pyError' } };
 const prefixed = { ...plain, runtime: { withNamespace: '__withNamespace', pyError: '__pyError' } };
 
-test('the module imports its runtime from the bridge, under the names the host gives it', () => {
-    const code = (host) => bryc.moduleCode(host, { js: 'BODY', namespace: 'src/a_py', source: 'src/a.py' }).split('\n');
+const compiled = (host, named = null) => bryc.compile(host, 'x = 1\n', { name: 'a', source: 'src/a.py', named });
 
-    expect(code(plain)).toEqual([
+test('the module imports its runtime from the bridge, under the names the host gives it', () => {
+    const code = (host) => compiled(host).module.split('\n');
+
+    expect(code(plain).slice(0, 5)).toEqual([
         "import { withNamespace, pyError } from 'host/bridge';",
         '',
         `export function init(${NS}) {`,
         '  try {',
-        `    return withNamespace("src/a_py", ${NS}, () => {`,
-        'BODY',
-        '    });',
-        '  } catch (err) { throw pyError(err,"src/a.py"); }',
-        '}'
+        `    return withNamespace("src/a_py", ${NS}, () => {`
     ]);
+    expect(code(plain).slice(-3)).toEqual(['    });', '  } catch (err) { throw pyError(err,"src/a.py"); }', '}']);
     expect(code(prefixed)[0]).toBe("import { withNamespace as __withNamespace, pyError as __pyError } from 'host/bridge';");
     expect(code(prefixed)[4]).toBe(`    return __withNamespace("src/a_py", ${NS}, () => {`);
 });
 
 test('the namespace is the file, or the module Python imports it by', () => {
-    const js = (namespace) => bryc.compilePython(plain, 'x = 1\n', { name: 'a', source: 'src/a.py', named: namespace }).to_js();
-
-    expect(bryc.moduleNamespace(plain, js(null), 'src/a.py')).toBe('src/a_py');
-    expect(bryc.moduleNamespace(plain, js('shop-cart'), 'src/a.py', 'shop-cart')).toBe('shop_cart');
-});
-
-test('code that opens no namespace Bryc can hook is refused, under the host name', () => {
-    expect(() => bryc.moduleNamespace(plain, 'var x = 1', 'src/a.py')).toThrow(/^host: the code generated for src\/a\.py never calls \$B\.namespace\("src\/a_py"\)/);
+    expect(compiled(plain).namespace).toBe('src/a_py');
+    expect(compiled(plain, 'shop-cart').namespace).toBe('shop_cart');
 });
 
 // **A compile runs the common half in its order, the host's own syntax made
@@ -259,9 +262,11 @@ test("an instance signs its containers onto its own list, and a function's acces
 // taken back to column zero as Brython takes a `<script type="text/python">`,
 // each function's dot reads a key as well as an attribute, and Bryc says where
 // each function lands, at the markup line and column it stands for.
+const component = (text, more) => bryc.compile(host, text, { name: 'Probe', source: 'src/Probe.svelte', component: true, ...more });
+
 test('the script dedented, the functions after it, each where its markup stands', () => {
     const defs = ['def __expr_0(row):\n    return __text(row.name)', 'def __expr_1():\n    return __text(1)'];
-    const { src, ranges, templateLine } = bryc.componentSource('    x = 1\n\n    y = 2', defs, [12, 14], [4, 0]);
+    const { src, ranges, templateLine } = component('    x = 1\n\n    y = 2', { defs, defLines: [12, 14], defColumns: [4, 0] });
 
     expect(src).toBe(
         'x = 1\n\ny = 2\n' +
@@ -277,5 +282,7 @@ test('the script dedented, the functions after it, each where its markup stands'
 });
 
 test('a script with no template functions is the script, dedented', () => {
-    expect(bryc.componentSource('    x = 1', [])).toEqual({ src: 'x = 1', ranges: [], templateLine: undefined });
+    const { src, ranges, templateLine } = component('    x = 1');
+
+    expect({ src, ranges, templateLine }).toEqual({ src: 'x = 1', ranges: [], templateLine: undefined });
 });

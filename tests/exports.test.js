@@ -23,9 +23,9 @@ const next = bryc.NEXT_VALUE;
 const source = 'src/probe.py';
 
 const exported = (src, lineOffset = 0) => {
-    const ast = bryc.compilePython(host, src, { name: 'probe', source })._ast;
+    const { root, table } = bryc.compile(host, src, { name: 'probe', source });
 
-    return bryc.declaredExports(host, ast, bryc.symbolTable(ast, source), source, lineOffset, src);
+    return bryc.declaredExports(host, root._ast, table, source, lineOffset, src);
 };
 
 test('the list the module ends with, run as Python runs it', () => {

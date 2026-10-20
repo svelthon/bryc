@@ -35,15 +35,13 @@ test('a word JavaScript reserves is refused on its line, with the name Python wr
     expect(() => bryc.refuseReserved(host, [], source, new Map())).not.toThrow();
 });
 
-const bound = (src) => {
-    const ast = bryc.compilePython(host, src, { name: 'a', source })._ast;
-
-    return () => bryc.refuseBoundImports(host, ast, bryc.symbolTable(ast, source), ['navigate'], source, 10);
-};
+// The module imports `navigate` from JavaScript on its first line, ten lines
+// into its file.
+const bound = (src) => () => bryc.compile(host, `__js__ = {"router": ["navigate"]}\n${src}`, { name: 'a', source, lineOffset: 10 });
 
 test("a JavaScript import bound by the module, or by a function's `global`, is refused on its line", () => {
-    expect(bound('x = 1\nnavigate = 2\n')).toThrow(/^host — `navigate` is a JavaScript import, which Python reads and never binds, .* \(src\/a\.py:12\)/);
-    expect(bound('def go():\n    global navigate\n    navigate = 1\n')).toThrow(/\(src\/a\.py:13\)/);
+    expect(bound('navigate = 2\n')).toThrow(/^host — `navigate` is a JavaScript import, which Python reads and never binds, .* \(src\/a\.py:12\)/);
+    expect(bound('def go():\n    global navigate\n    navigate = 1\n')).toThrow(/\(src\/a\.py:14\)/);
 });
 
 test("a function's own name of that spelling binds nothing of the module's", () => {
@@ -112,7 +110,7 @@ test("a word the host does not reserve is the author's", () => {
 // on. A module the runtime holds, or a file of the project, is imported as
 // written.
 const missing = (module, resolves = () => undefined) => () =>
-    bryc.refuseMissingModules(host, new Map([[module, 2]]), resolves, source, 10);
+    bryc.compile(host, `x = 1\nimport ${module}\n`, { name: 'a', source, lineOffset: 10, resolves });
 
 test('a module that does not ship is refused on its line, with what the host says stands in for it', () => {
     expect(missing('json')).toThrow(
