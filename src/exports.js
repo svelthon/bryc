@@ -16,6 +16,7 @@
 // An entry that is not a string, which CPython itself raises on at
 // `from m import *`, is left out while the good ones are kept.
 import { refuse } from './errors.js';
+import { jsLocal } from './imports.js';
 import { COMPREHENSIONS, walkScoped, builtinIn, scopeIn, isGlobalScope, moduleBinds } from './scopes.js';
 import { counterStart, engine, JS_RESERVED, PY_NAME, NS, NEXT_VALUE } from './translation.js';
 
@@ -430,12 +431,14 @@ const unboundRefusals = (host, unbound, listedAt) =>
 // name a number, and stayed a number after Python had made it a function again.
 const exportCell = (name) => `__export_${name}`;
 
-function moduleExports({ exported, jsImported }) {
+// An import re-exported from the variable it is held under (`jsLocal`).
+function moduleExports(host, { exported, jsImported }) {
     const own = (n) => !jsImported.includes(n);
+    const named = (n) => (own(n) ? `${exportCell(n)} as ${n}` : jsLocal(host, n) === n ? n : `${jsLocal(host, n)} as ${n}`);
 
     return [
         ...exported.filter(own).map((n) => `let ${exportCell(n)};`),
-        ...(exported.length ? [`export { ${exported.map((n) => (own(n) ? `${exportCell(n)} as ${n}` : n)).join(', ')} };`] : [])
+        ...(exported.length ? [`export { ${exported.map(named).join(', ')} };`] : [])
     ];
 }
 

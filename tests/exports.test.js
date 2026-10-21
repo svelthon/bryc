@@ -119,14 +119,22 @@ test('with a star import, a name not yet bound waits, and is refused once the bo
 const module = { exported: ['load', 'navigate'], jsImported: ['navigate'], source: 'src/+page.server.py' };
 
 test('each name exported live, a JavaScript import as its own binding', () => {
-    expect(bryc.moduleExports(module)).toEqual(['let __export_load;', 'export { __export_load as load, navigate };']);
+    expect(bryc.moduleExports(host, module)).toEqual(['let __export_load;', 'export { __export_load as load, navigate };']);
     expect(bryc.liveExportLines(host, module)).toEqual([
         `liveExport(${NS}, "load", (__value) => { __export_load = pyExport(__value, "load — src/+page.server.py"); });`
     ]);
 });
 
+// An import named like one of the framework's own words is held under another
+// variable (`host.runes`), and re-exported from it under its own name.
+test('an import named like one of the framework’s words is re-exported from its variable', () => {
+    const runes = { ...host, runes: ['effect'] };
+
+    expect(bryc.moduleExports(runes, { exported: ['effect'], jsImported: ['effect'] })).toEqual(['export { __import_effect as effect };']);
+});
+
 test('a module that exports nothing writes no export', () => {
-    expect(bryc.moduleExports({ exported: [], jsImported: [] })).toEqual([]);
+    expect(bryc.moduleExports(host, { exported: [], jsImported: [] })).toEqual([]);
 });
 
 // **A module's body runs when it is imported, not when it is evaluated**: a

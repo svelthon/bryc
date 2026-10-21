@@ -273,19 +273,26 @@ function takeImportJs(host, src, where, lineOffset, allowed) {
     return { source: kept.join('\n'), imports };
 }
 
+// The variable a JavaScript import is held under. Its own name, unless the
+// framework's compiler reads that name as its own once a binding takes it
+// (`host.runes`): Svelte reads `$effect` as a store as soon as the module binds
+// `effect`, which turns every `$effect` it writes into a read of the import.
+// Python still reads the import under its own name (`jsNameBindings`).
+const jsLocal = (host, name) => ((host.runes ?? []).includes(name) ? `__import_${name}` : name);
+
 // One import statement, in whichever of the five shapes it was declared.
-function jsImportLine(one) {
+function jsImportLine(host, one) {
     const from = JSON.stringify(one.from);
-    const list = (entries) =>
-        entries.map((e) => (e.name === e.local ? e.local : `${e.name} as ${e.local}`)).join(', ');
+    const local = (e) => jsLocal(host, e.local);
+    const list = (entries) => entries.map((e) => (e.name === local(e) ? e.name : `${e.name} as ${local(e)}`)).join(', ');
 
     if (one.kind === 'effect') return `import ${from};`;
-    if (one.kind === 'namespace') return `import * as ${one.entries[0].local} from ${from};`;
-    if (one.kind === 'default') return `import ${one.entries[0].local} from ${from};`;
+    if (one.kind === 'namespace') return `import * as ${local(one.entries[0])} from ${from};`;
+    if (one.kind === 'default') return `import ${local(one.entries[0])} from ${from};`;
 
     if (one.kind === 'mixed') {
         const [first, ...rest] = one.entries;
-        return `import ${first.local}, { ${list(rest)} } from ${from};`;
+        return `import ${local(first)}, { ${list(rest)} } from ${from};`;
     }
 
     return `import { ${list(one.entries)} } from ${from};`;
@@ -360,9 +367,10 @@ function jsNameBindings(host, { jsImported, declared, source }, extra = []) {
     // through `globals()` or from another module, is refused as JavaScript
     // refuses it, rather than taken by Python's reader and missed by
     // JavaScript's.
+    // An import is read off the variable it is held under (`jsLocal`).
     return names.map((n) =>
         jsImported.includes(n)
-            ? `${bind}(${PROTO}, '${pythonName(n)}', () => ${jsCall}(${n}), () => ${readOnlyImport}(${JSON.stringify(n)}, ${JSON.stringify(source)}));`
+            ? `${bind}(${PROTO}, '${pythonName(n)}', () => ${jsCall}(${jsLocal(host, n)}), () => ${readOnlyImport}(${JSON.stringify(n)}, ${JSON.stringify(source)}));`
             : `${bind}(${PROTO}, '${pythonName(n)}', () => ${jsCall}(${n}));`
     );
 }
@@ -817,6 +825,7 @@ export {
     declaredJsImports,
     continuedLines,
     takeImportJs,
+    jsLocal,
     jsImportLine,
     jsImportsOf,
     jsNameBindings,

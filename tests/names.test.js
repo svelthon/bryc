@@ -66,6 +66,28 @@ test('under the name Python reads', () => {
     expect(bryc.jsNameBindings(host, { jsImported: [], declared: [], source: 'a.py' }, ['ﬁeld'])).toEqual([`bind(${P}, 'field', () => jsCall(ﬁeld));`]);
 });
 
+// **An import named like one of the framework's own words is held under
+// another variable** (`host.runes`), the one its compiler leaves alone, and
+// published to Python under its own name: Svelte reads `$effect` as a store
+// once the module binds `effect`. A name of the JavaScript beside the module
+// is the author's own and keeps its name.
+test("an import named like one of the framework's words is imported under another variable, read by Python under its own", () => {
+    const runes = { ...host, runes: ['effect', 'state'] };
+
+    expect(bryc.jsImportLine(runes, { from: './x.js', kind: 'named', entries: [{ name: 'effect', local: 'effect' }, { name: 'go', local: 'go' }] })).toBe(
+        'import { effect as __import_effect, go } from "./x.js";'
+    );
+    expect(bryc.jsImportLine(runes, { from: './x.js', kind: 'default', entries: [{ name: 'default', local: 'state' }] })).toBe('import __import_state from "./x.js";');
+    expect(bryc.jsNameBindings(runes, { jsImported: ['effect'], declared: [], source }, ['state'])).toEqual([
+        `bind(${P}, 'effect', () => jsCall(__import_effect), () => readOnly("effect", "src/a.py"));`,
+        `bind(${P}, 'state', () => jsCall(state));`
+    ]);
+});
+
+test('without the member, every import keeps its name', () => {
+    expect(bryc.jsImportLine(host, { from: './x.js', kind: 'named', entries: [{ name: 'effect', local: 'effect' }] })).toBe('import { effect } from "./x.js";');
+});
+
 test('two names Python reads as one are refused', () => {
     expect(() => bryc.jsNameBindings(host, { jsImported: [], declared: [], source: 'a.py' }, ['field', 'ﬁeld'])).toThrow(
         /^host — `field` and `ﬁeld` are two JavaScript names Python reads as one, `field` \(a\.py\)/

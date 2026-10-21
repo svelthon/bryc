@@ -62,6 +62,11 @@
 //            translation, `rewrite(text, { source, lineOffset, component,
 //            bound })` answering the text, `bound` the names `importjs`
 //            binds. A host with no syntax of its own leaves it out.
+//   runes    optional: the names the framework's compiler reads as its own
+//            once a binding of the module takes them, `$effect` read as a
+//            store once `effect` is bound: `['state', 'derived', 'effect', …]`
+//            for Svelte, none for Vue. A JavaScript import of one is held
+//            under another variable, and Python reads it under its own name.
 //
 // Whatever names a thing the host provides belongs to the host, messages
 // included.
